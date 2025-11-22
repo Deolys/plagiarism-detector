@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+import re
 from github import Github
 from app.core.config import settings
 from app.utils.logger import get_logger
@@ -9,9 +10,28 @@ class GitHubService:
     def __init__(self):
         self.github = Github(settings.GITHUB_TOKEN)
 
+    def _validate_query(self, query: str) -> str:
+        """Validate and clean GitHub search query."""
+        cleaned = re.sub(r'[^\w\s\-_.]', ' ', query)
+        
+        cleaned = ' '.join(cleaned.split())
+        
+        if len(cleaned.strip()) < 3:
+            return ""
+            
+        return cleaned.strip()
+
     def search_code(self, query: str, language: str = "python", per_page: int = 3) -> List[Dict[str, Any]]:
         try:
-            search_query = f'{query} language:{language}'
+            clean_query = self._validate_query(query)
+            
+            if not clean_query:
+                logger.warning(f"Invalid or empty search query: '{query}'")
+                return []
+            
+            search_query = f'{clean_query} language:{language}'
+            logger.debug(f"GitHub search query: {search_query}")
+            
             results = self.github.search_code(search_query, order="desc")
 
             matches = []
