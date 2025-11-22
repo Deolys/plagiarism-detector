@@ -12,7 +12,7 @@ class GitHubService:
     def search_code(self, query: str, language: str = "python", per_page: int = 3) -> List[Dict[str, Any]]:
         try:
             search_query = f'{query} language:{language}'
-            results = self.github.search_code(search_query, sort="stars", order="desc")
+            results = self.github.search_code(search_query, order="desc")
 
             matches = []
             for i, result in enumerate(results):

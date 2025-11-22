@@ -119,7 +119,7 @@ Health Check:
   GET /api/v1/health
   Response: {"status": "ok"}
 
-Check Code for Plagiarism:
+Check Code for Plagiarism (JSON):
   POST /api/v1/check
   
   Request:
@@ -140,6 +140,21 @@ Check Code for Plagiarism:
       }
     ]
   }
+
+Check Code for Plagiarism (File Upload):
+  POST /api/v1/upload
+  Content-Type: multipart/form-data
+  
+  Request:
+  file: <your_python_file.py>
+  
+  Example using curl:
+  curl -X POST "http://localhost:8000/api/v1/upload" -F "file=@example_code.py"
+  
+  Example using test script:
+  python test_upload_endpoint.py example_code.py
+  
+  Response: Same format as /api/v1/check
 
 ================================================================================
 LANGGRAPH ARCHITECTURE

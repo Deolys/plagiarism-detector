@@ -3,6 +3,13 @@ from typing import Any
 from langchain_openai import ChatOpenAI
 from app.core.config import settings
 from app.utils.logger import get_logger
+import httpx
+
+
+
+proxies = {
+    'https': settings.PROXY
+}
 
 logger = get_logger(__name__)
 
@@ -10,7 +17,9 @@ class LLMService:
     def __init__(self):
         self.llm = ChatOpenAI(
             api_key=settings.OPENAI_API_KEY,
-            model="gpt-3.5-turbo",
+            http_client=httpx.Client(proxy=proxies.get('https')),
+            # base_url=settings.OPENAI_API_BASE_URL,
+            model="gpt-5-nano",
             temperature=0.3
         )
 
