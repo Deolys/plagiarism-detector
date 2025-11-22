@@ -57,7 +57,7 @@ The API will be available at `http://localhost:8000`
 GET /api/v1/health
 ```
 
-### Check Code for Plagiarism
+### Check Code for Plagiarism (JSON)
 ```
 POST /api/v1/check
 Content-Type: application/json
@@ -82,6 +82,37 @@ Content-Type: application/json
   ]
 }
 ```
+
+### Check Code for Plagiarism (File Upload)
+```
+POST /api/v1/upload
+Content-Type: multipart/form-data
+
+file: <your_python_file.py>
+```
+
+**Using curl:**
+```bash
+curl -X POST "http://localhost:8000/api/v1/upload" \
+  -F "file=@example_code.py"
+```
+
+**Using Python:**
+```python
+import requests
+
+with open('example_code.py', 'rb') as f:
+    files = {'file': f}
+    response = requests.post('http://localhost:8000/api/v1/upload', files=files)
+    print(response.json())
+```
+
+**Or use the test script:**
+```bash
+python test_upload_endpoint.py example_code.py
+```
+
+**Response:** Same format as `/api/v1/check`
 
 ## Project Structure
 

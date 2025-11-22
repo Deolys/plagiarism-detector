@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+import re
 from langchain_core.runnables import Runnable
 from app.agents.base.base_agent import BaseAgent
 from app.services.github_service import github_service
@@ -6,6 +7,21 @@ from app.services.github_service import github_service
 class GitSearcherAgent(BaseAgent, Runnable):
     def __init__(self):
         super().__init__("GitSearcher")
+
+    def _clean_search_query(self, code: str) -> str:
+        """Extract meaningful keywords from code for GitHub search."""
+        lines = code.split("\n")[:4]
+        text = " ".join(lines)
+        
+        stop_words = {'def', 'class', 'self', 'import', 'from', 'return', 'if', 'else', 'elif', 'for', 'while', 'try', 'except', 'with', 'as'}
+        
+        words = re.findall(r'\b[a-zA-Z_][a-zA-Z0-9_]{2,}\b', text)
+        
+        keywords = [w for w in words if w not in stop_words and not w.startswith('_')]
+        
+        query = " ".join(keywords[:5])
+        
+        return query.strip()[:200] if query.strip() else ""
 
     def invoke(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         try:
@@ -15,8 +31,10 @@ class GitSearcherAgent(BaseAgent, Runnable):
             search_results = []
 
             for block in blocks:
-                code_lines = block["code"].split("\n")[:4]
-                search_query = " ".join(code_lines).strip()[:200]
+                search_query = self._clean_search_query(block["code"])
+                
+                if not search_query and block.get("name"):
+                    search_query = re.sub(r'[^a-zA-Z0-9_\s]', '', block["name"])
 
                 if not search_query:
                     search_results.append({
@@ -24,6 +42,7 @@ class GitSearcherAgent(BaseAgent, Runnable):
                         "block_type": block["type"],
                         "found_matches": []
                     })
+                    self.log_info(f"Block '{block['name']}': skipped (no valid search terms)")
                     continue
 
                 matches = github_service.search_code(search_query, language="python", per_page=3)
